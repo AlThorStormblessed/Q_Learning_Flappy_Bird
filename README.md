@@ -12,17 +12,13 @@ The flappy.py and flappy_gravity.py files are used to train the Q-learning algor
 
 ## Results
 
-### 1. Without Gravity
-
 Only two states were used to train the model, that is the distance between the bird and the next pipe along the X and the Y axes. The model was trained over 40000 episodes and achieved a peak score of 480 with an average of 64 over the last 2000 episodes.
 
 10000 episodes: 
 
 
-https://github.com/AlThorStormblessed/Q_Learning_Flappy_Bird/assets/86941904/71f7d06b-7a9a-42d3-95e1-c60d20d8fcd1
 
-
-
+https://github.com/AlThorStormblessed/Q_Learning_Flappy_Bird/assets/86941904/43487691-c516-456f-a797-f454ffce9b13
 
 
 
@@ -32,7 +28,11 @@ https://github.com/AlThorStormblessed/Q_Learning_Flappy_Bird/assets/86941904/71f
 
 
 
-https://github.com/AlThorStormblessed/Q_Learning_Flappy_Bird/assets/86941904/e70020d9-701d-432b-afa2-a4c554e8d277
+
+https://github.com/AlThorStormblessed/Q_Learning_Flappy_Bird/assets/86941904/cfb51759-3c61-4cdb-acfa-fa4a61ba12c0
+
+
+
 
 
 
@@ -43,7 +43,8 @@ https://github.com/AlThorStormblessed/Q_Learning_Flappy_Bird/assets/86941904/e70
 
 
 
-https://github.com/AlThorStormblessed/Q_Learning_Flappy_Bird/assets/86941904/069ab746-3a0c-449d-b2f9-9bd55663a506
+https://github.com/AlThorStormblessed/Q_Learning_Flappy_Bird/assets/86941904/cfe303fc-595f-483e-8879-3695bee7a28a
+
 
 
 
