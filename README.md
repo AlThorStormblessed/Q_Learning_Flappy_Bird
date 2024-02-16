@@ -19,8 +19,11 @@ Only two states were used to train the model, that is the distance between the b
 10000 episodes: 
 
 
+https://github.com/AlThorStormblessed/Q_Learning_Flappy_Bird/assets/86941904/71f7d06b-7a9a-42d3-95e1-c60d20d8fcd1
 
-https://github.com/AlThorStormblessed/Q_Learning_Flappy_Bird/assets/86941904/962f428b-4e71-42ba-886b-d94b14772357
+
+
+
 
 
 
@@ -28,7 +31,9 @@ https://github.com/AlThorStormblessed/Q_Learning_Flappy_Bird/assets/86941904/962
 
 
 
-https://github.com/AlThorStormblessed/Q_Learning_Flappy_Bird/assets/86941904/1385e197-0bdb-4e4a-9177-409cb3ef153c
+
+https://github.com/AlThorStormblessed/Q_Learning_Flappy_Bird/assets/86941904/e70020d9-701d-432b-afa2-a4c554e8d277
+
 
 
 
@@ -36,7 +41,10 @@ https://github.com/AlThorStormblessed/Q_Learning_Flappy_Bird/assets/86941904/138
 
 
 
-https://github.com/AlThorStormblessed/Q_Learning_Flappy_Bird/assets/86941904/31b68d06-3c38-462a-bdfe-aeea6f3124e6
+
+
+https://github.com/AlThorStormblessed/Q_Learning_Flappy_Bird/assets/86941904/069ab746-3a0c-449d-b2f9-9bd55663a506
+
 
 
 
@@ -48,4 +56,4 @@ https://github.com/AlThorStormblessed/Q_Learning_Flappy_Bird/assets/86941904/5fb
 
 
 
-The model gradually learns how to play the game and begins to achieve higher and higher totals, going as high as 500. Using states such as the bird's absolute height, speed, position of the next pipe as well etc will increase training time and complexity but will also rapidly increase scores. TThis can also be improved by the use of Deep Q Learning.
+The model gradually learns how to play the game and begins to achieve higher and higher totals, going as high as 500. Using states such as the bird's absolute height, speed, position of the next to next pipe as well, etc will increase training time and complexity but will also rapidly increase scores. This can also be improved by the use of Deep Q Learning.
