@@ -5,7 +5,6 @@ from matplotlib import style
 
 style.use("ggplot")
 
-
 #VARIABLES
 SCREEN_WIDTH = 300
 SCREEN_HEIGHT = 600
@@ -142,7 +141,7 @@ discount = 1
 show_every = 20000
 peak_score = 0
 scores = []
-start_q_table = "qtable-1708077809.pickle" #Q-Table pickle file
+start_q_table = "qtable-1708025126.pickle" #Q-Table pickle file
 with open(start_q_table, "rb") as f:
     q_table = pickle.load(f)
 
@@ -206,10 +205,6 @@ for i in range(num_ep):
 
         clock.tick(60)
 
-        for event in pygame.event.get():
-            if event.type == QUIT:
-                pygame.quit()
-
         if(np.random.random() < epsilon): action = np.random.randint(0, 2)
         else: 
             action = np.argmax(q_table[obs][:2])
@@ -264,7 +259,7 @@ for i in range(num_ep):
 
         else:
             # print(pipe_group.sprites()[0].rect)
-            if(pipe_group.sprites()[0].rect[0] < bird.rect[0] and flag_):
+            if(pipe_group.sprites()[0].rect[0] < bird.rect[0] and flag_):  
                 score += 1
                 flag_ = False
                 peak_score = max(peak_score, score)
@@ -304,3 +299,5 @@ for i in range(num_ep):
 # plt.xlabel("Number of episodes")
 # plt.ylabel("Score")
 # plt.show()
+    
+print("Hello world")

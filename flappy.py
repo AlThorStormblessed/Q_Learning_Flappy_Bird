@@ -129,7 +129,7 @@ def Capture(display,name,pos,size): # (pygame Surface, String, tuple, tuple)
     image.blit(display,(0,0),(pos,size))  # Blit portion of the display to the image
     pygame.image.save(image,name) 
 
-
+rewards = []
 num_ep = 40000
 score_rew = 15
 flag_ = True
@@ -138,9 +138,9 @@ over_flow = -1000
 epsilon = 0.
 epsilon_decay = .98
 alpha = 0.05
-alpha_decay = 0.9998
+# alpha_decay = 0.9998
 discount = 1
-show_every = 2000
+show_every = 1000
 peak_score = 0
 scores = []
 q_table = {}
@@ -150,8 +150,7 @@ for i in range(600, -151, -10):
 
 for i in range(num_ep):
     if i % show_every == 0:
-        show = True
-        os.mkdir(f"num_episodes_{i}")
+        show = True 
     else:
         show = False
 
@@ -271,8 +270,8 @@ for i in range(num_ep):
 
         pygame.display.update()
 
-        if show:
-            Capture(screen, f"num_episodes_{i}/{k}.png", (0, 0), (300, 600))
+        # if show:
+        #     Capture(screen, f"num_episodes_{i}/{k}.png", (0, 0), (300, 600))
 
         # print(bird.speed)
 
@@ -313,14 +312,15 @@ for i in range(num_ep):
             break
     
     scores.append(score)
-    if show: print(f"{i + 1}th Episode: Reward = {total_reward}, Peak Score = {peak_score}, Score = {score}, Rolling Average = {round(np.mean(scores[-200:]), 4)}")
-    epsilon *= epsilon_decay
-    # alpha *= alpha_decay  
+    if show: 
+        print(f"{i + 1}th Episode: Reward = {total_reward}, Peak Score = {peak_score}, Score = {score}, Rolling Average = {round(np.mean(scores[-200:]), 4)}")
+        rewards.append(round(np.mean(scores[-show_every:]), 4))
 
+print(rewards)
 with open(f"qtable-{int(time.time())}.pickle", "wb") as f:
     pickle.dump(q_table, f)
 
-plt.scatter(np.arange(0, num_ep), scores, s = 0.1)
+plt.scatter(np.arange(0, len(rewards)), rewards, s = 0.1)
 plt.grid()
 plt.xlabel("Number of episodes")
 plt.ylabel("Score")

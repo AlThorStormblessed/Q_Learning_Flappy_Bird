@@ -1,5 +1,5 @@
 # importing libraries 
-import os, glob
+import os
 import cv2 
 from PIL import Image 
 
