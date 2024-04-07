@@ -3,6 +3,7 @@ import pygame, random, time, math, numpy as np, pickle, os
 from pygame.locals import *
 from matplotlib import style
 import keras
+import tensorflow as tf
 from keras.models import Sequential
 from keras.layers import (
     Dense,
@@ -12,7 +13,7 @@ from collections import deque
 from tqdm import tqdm
 
 style.use("ggplot")
-
+# tf.compat.v1.disable_eager_execution()
 
 #VARIABLES
 SCREEN_WIDTH = 300
@@ -139,8 +140,8 @@ train_every = 15
 flag_ = True
 crash = -1000
 over_flow = -1000
-epsilon = 0.
-epsilon_decay = .98
+epsilon = 1
+epsilon_decay = .0001
 alpha = 0.05
 # alpha_decay = 0.9998
 discount = 1
@@ -151,12 +152,11 @@ D = deque()
 state = np.stack(((0, 0), (0, 0)), axis = 1)
 
 model = Sequential()
-model.add(Dense(36, input_shape=(2,) + np.array((0, 0)).shape, activation='relu'))
+model.add(Dense(256, input_shape=(2,) + np.array((0, 0)).shape, activation='relu'))
 model.add(Flatten())       # Flatten input so as to have no problems with processing
-model.add(Dense(18, activation='relu'))
-model.add(Dense(10, activation='relu'))
+model.add(Dense(256, activation='relu'))
 model.add(Dense(2, activation='linear'))    # Same number of outputs as possible actions
-checkpoint_path = "training_1/cp.ckpt"
+# checkpoint_path = "training_1/cp.ckpt"
 # model.load_weights(checkpoint_path)
 model.compile(loss='mse', optimizer='adam', metrics=['accuracy'])
 
@@ -224,7 +224,9 @@ for i in tqdm(range(num_ep)):
 
     total_reward = 0
     while True:
-
+        epsilon = epsilon - epsilon_decay
+        if epsilon < 0.01:
+            epsilon = 0.01
         clock.tick(1000000)
 
         if random.random() > epsilon: action = random.randint(0, 1)
@@ -321,7 +323,7 @@ for i in tqdm(range(num_ep)):
             target = reward + discount * np.max(qn[0])
 
         q[0][action] = target
-        model.fit(state, q, epochs=1, verbose=0)
+        model.train_on_batch(state, q)
     
         state = state_new
 
@@ -340,21 +342,21 @@ for i in tqdm(range(num_ep)):
         inputs = np.zeros(inputs_shape)
         targets = np.zeros((mb_size, 2))
 
-        for i in range(0, mb_size):
-            state_D = minibatch[i][0]
-            action_D = minibatch[i][1]
-            reward_D = minibatch[i][2]
-            state_new_D = minibatch[i][3]
-            done_D = minibatch[i][4]
+        for j in range(0, mb_size):
+            state_D = minibatch[j][0]
+            action_D = minibatch[j][1]
+            reward_D = minibatch[j][2]
+            state_new_D = minibatch[j][3]
+            done_D = minibatch[j][4]
         # Build Bellman equation for the Q function
-            inputs[i:i+1] = np.expand_dims(state_D, axis=0)
-            targets[i] = model.predict(state_D, verbose = 0)
+            inputs[j:j+1] = np.expand_dims(state_D, axis=0)
+            targets[j] = model.predict(state_D, verbose = 0)
             Q_sa = model.predict(state_new_D, verbose = 0)
             
             if done_D:
-                targets[i, action_D] = reward_D
+                targets[j, action_D] = reward_D
             else:
-                targets[i, action_D] = reward_D + discount * np.max(Q_sa)
+                targets[j, action_D] = reward_D + discount * np.max(Q_sa)
 
         # Train network to output the Q function
         model.train_on_batch(inputs, targets)
@@ -363,20 +365,19 @@ for i in tqdm(range(num_ep)):
         pass
 
     scores.append(score)
-    epsilon *= epsilon_decay
     if show: 
-        print(f"{i + 1}th Episode: Reward = {total_reward}, Peak Score = {peak_score}, Score = {score}, Rolling Average = {round(np.mean(scores[-200:]), 4)}")
+        print(f"{i + 1}th Episode: Reward = {total_reward}, Peak Score = {peak_score}, Score = {score}, Rolling Average = {round(np.mean(scores[-show_every:]), 4)}, Epsilon: {round(epsilon, 3)}")
         rewards.append(round(np.mean(scores[-show_every:]), 4))
         # if (i - 1) % 200 == 0: D = deque()
 
-        model.save_weights("training_2/cp.ckpt")
+        model.save_weights("training_2/cp.weights.h5")
 
         # D = deque()
 
 
-print(rewards)
-with open(f"qtable-{int(time.time())}.pickle", "wb") as f:
-    pickle.dump(q_table, f)
+# print(rewards)
+# with open(f"qtable-{int(time.time())}.pickle", "wb") as f:
+#     pickle.dump(q_table, f)
 
 plt.scatter(np.arange(0, len(rewards)), rewards, s = 0.1)
 plt.grid()
