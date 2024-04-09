@@ -134,30 +134,30 @@ def Capture(display,name,pos,size): # (pygame Surface, String, tuple, tuple)
 
 
 rewards = []
-num_ep = 2000
+num_ep = 200000
 score_rew = 15
 train_every = 15
 flag_ = True
 crash = -1000
 over_flow = -1000
-epsilon = 1
+epsilon = .66
 epsilon_decay = .0001
 alpha = 0.05
 # alpha_decay = 0.9998
 discount = 1
-show_every = 35
+show_every = 200
 peak_score = 0
 mb_size = 100
 D = deque()   
 state = np.stack(((0, 0), (0, 0)), axis = 1)
 
 model = Sequential()
-model.add(Dense(256, input_shape=(2,) + np.array((0, 0)).shape, activation='relu'))
+model.add(Dense(32, input_shape=(2,) + np.array((0, 0)).shape, activation='relu'))
 model.add(Flatten())       # Flatten input so as to have no problems with processing
-model.add(Dense(256, activation='relu'))
+model.add(Dense(8, activation='relu'))
 model.add(Dense(2, activation='linear'))    # Same number of outputs as possible actions
-# checkpoint_path = "training_1/cp.ckpt"
-# model.load_weights(checkpoint_path)
+checkpoint_path = "training_2/cp.weights.h5"
+model.load_weights(checkpoint_path)
 model.compile(loss='mse', optimizer='adam', metrics=['accuracy'])
 
 scores = []
@@ -224,12 +224,9 @@ for i in tqdm(range(num_ep)):
 
     total_reward = 0
     while True:
-        epsilon = epsilon - epsilon_decay
-        if epsilon < 0.01:
-            epsilon = 0.01
         clock.tick(1000000)
 
-        if random.random() > epsilon: action = random.randint(0, 1)
+        if random.random() < epsilon: action = random.randint(0, 1)
         else:
             Q = model.predict(state, verbose = 0)          # Q-values predictions
             action = np.argmax(Q)   
@@ -336,8 +333,11 @@ for i in tqdm(range(num_ep)):
             #     time.sleep(2)
             break
     
+    epsilon = epsilon - epsilon_decay
+    if epsilon < 0.01:
+        epsilon = 0.01
     try: 
-        minibatch = random.sample(D, mb_size)
+        minibatch = random.sample(D[-10000:], mb_size)
         inputs_shape = (mb_size,) + state.shape[1:]
         inputs = np.zeros(inputs_shape)
         targets = np.zeros((mb_size, 2))
@@ -348,6 +348,7 @@ for i in tqdm(range(num_ep)):
             reward_D = minibatch[j][2]
             state_new_D = minibatch[j][3]
             done_D = minibatch[j][4]
+            
         # Build Bellman equation for the Q function
             inputs[j:j+1] = np.expand_dims(state_D, axis=0)
             targets[j] = model.predict(state_D, verbose = 0)
@@ -368,7 +369,7 @@ for i in tqdm(range(num_ep)):
     if show: 
         print(f"{i + 1}th Episode: Reward = {total_reward}, Peak Score = {peak_score}, Score = {score}, Rolling Average = {round(np.mean(scores[-show_every:]), 4)}, Epsilon: {round(epsilon, 3)}")
         rewards.append(round(np.mean(scores[-show_every:]), 4))
-        # if (i - 1) % 200 == 0: D = deque()
+        if (i - 1) % 2000 == 0: D = deque()
 
         model.save_weights("training_2/cp.weights.h5")
 
