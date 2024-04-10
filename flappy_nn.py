@@ -140,12 +140,12 @@ train_every = 15
 flag_ = True
 crash = -1000
 over_flow = -1000
-epsilon = .66
+epsilon = .01
 epsilon_decay = .0001
 alpha = 0.05
 # alpha_decay = 0.9998
 discount = 1
-show_every = 200
+show_every = 100
 peak_score = 0
 mb_size = 100
 D = deque()   
@@ -369,7 +369,7 @@ for i in tqdm(range(num_ep)):
     if show: 
         print(f"{i + 1}th Episode: Reward = {total_reward}, Peak Score = {peak_score}, Score = {score}, Rolling Average = {round(np.mean(scores[-show_every:]), 4)}, Epsilon: {round(epsilon, 3)}")
         rewards.append(round(np.mean(scores[-show_every:]), 4))
-        if (i - 1) % 2000 == 0: D = deque()
+        if (i - 1) % 1000 == 0: D = deque()
 
         model.save_weights("training_2/cp.weights.h5")
 
