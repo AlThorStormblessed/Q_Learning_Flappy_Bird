@@ -378,9 +378,9 @@ for i in tqdm(range(num_ep)):
         # D = deque()
 
 
-# print(rewards)
-# with open(f"qtable-{int(time.time())}.pickle", "wb") as f:
-#     pickle.dump(q_table, f)
+print(rewards)
+with open(f"qtable-{int(time.time())}.pickle", "wb") as f:
+    pickle.dump(q_table, f)
 
 plt.scatter(np.arange(0, len(rewards)), rewards, s = 0.1)
 plt.grid()
