@@ -145,9 +145,10 @@ epsilon_decay = .0001
 alpha = 0.05
 # alpha_decay = 0.9998
 discount = 1
-show_every = 100
+show_every = 20
 peak_score = 0
-mb_size = 100
+mb_size = 5000
+best = 0
 D = deque()   
 state = np.stack(((0, 0), (0, 0)), axis = 1)
 
@@ -156,7 +157,7 @@ model.add(Dense(32, input_shape=(2,) + np.array((0, 0)).shape, activation='relu'
 model.add(Flatten())       # Flatten input so as to have no problems with processing
 model.add(Dense(8, activation='relu'))
 model.add(Dense(2, activation='linear'))    # Same number of outputs as possible actions
-checkpoint_path = "training_2/cp.weights.h5"
+checkpoint_path = "training_2/cp2.weights.h5"
 model.load_weights(checkpoint_path)
 model.compile(loss='mse', optimizer='adam', metrics=['accuracy'])
 
@@ -336,8 +337,8 @@ for i in tqdm(range(num_ep)):
     epsilon = epsilon - epsilon_decay
     if epsilon < 0.01:
         epsilon = 0.01
-    try: 
-        minibatch = random.sample(D[-10000:], mb_size)
+    if show and len(D) > mb_size: 
+        minibatch = random.sample(D, mb_size)
         inputs_shape = (mb_size,) + state.shape[1:]
         inputs = np.zeros(inputs_shape)
         targets = np.zeros((mb_size, 2))
@@ -362,16 +363,17 @@ for i in tqdm(range(num_ep)):
         # Train network to output the Q function
         model.train_on_batch(inputs, targets)
 
-    except: 
-        pass
+    # except: 
+    #     pass
 
     scores.append(score)
     if show: 
         print(f"{i + 1}th Episode: Reward = {total_reward}, Peak Score = {peak_score}, Score = {score}, Rolling Average = {round(np.mean(scores[-show_every:]), 4)}, Epsilon: {round(epsilon, 3)}")
         rewards.append(round(np.mean(scores[-show_every:]), 4))
         if (i - 1) % 1000 == 0: D = deque()
-
-        model.save_weights("training_2/cp.weights.h5")
+        if best < round(np.mean(scores[-show_every:]), 4) and i:
+            model.save_weights("training_2/cp2.weights.h5")
+            best = round(np.mean(scores[-show_every:]), 4)
 
         # D = deque()
 
