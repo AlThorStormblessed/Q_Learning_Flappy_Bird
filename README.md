@@ -35,4 +35,12 @@ https://github.com/AlThorStormblessed/Q_Learning_Flappy_Bird/assets/86941904/5fb
 
 
 
-The model gradually learns how to play the game and begins to achieve higher and higher totals, going as high as 500. Using states such as the bird's absolute height, speed, position of the next to next pipe as well, etc will increase training time and complexity but will also rapidly increase scores. This can also be improved by the use of Deep Q Learning.
+The model gradually learns how to play the game and begins to achieve higher and higher totals, going as high as 500. Using states such as the bird's absolute height, speed, position of the next to next pipe as well, etc will increase training time and complexity but will also rapidly increase scores.
+
+
+## Deep Q Learning model
+
+The average score of the game was increased greatly by the use of NN, to over 250. The following is an example of a run:
+
+https://drive.google.com/file/d/1M4LbFsHekO2BPjBapU8I_q_A5CY1UVaM/view?usp=sharing
+
