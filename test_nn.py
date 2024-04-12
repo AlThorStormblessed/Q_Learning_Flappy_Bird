@@ -1,18 +1,15 @@
 import matplotlib.pyplot as plt
-import pygame, random, time, math, numpy as np, pickle, os
+import pygame, random, time, math, numpy as np, pickle
 from pygame.locals import *
 from matplotlib import style
-import keras
+import tensorflow as tf
 from keras.models import Sequential
 from keras.layers import (
     Dense,
     Flatten
 )
-from collections import deque
-from tqdm import tqdm
 
 style.use("ggplot")
-
 
 #VARIABLES
 SCREEN_WIDTH = 300
@@ -30,6 +27,12 @@ PIPE_WIDTH = 80
 PIPE_HEIGHT = 500
 
 PIPE_GAP = 150
+
+wing = 'assets/audio/wing.wav'
+hit = 'assets/audio/hit.wav'
+
+pygame.mixer.init()
+
 
 class Bird(pygame.sprite.Sprite):
 
@@ -131,48 +134,37 @@ def Capture(display,name,pos,size): # (pygame Surface, String, tuple, tuple)
     image.blit(display,(0,0),(pos,size))  # Blit portion of the display to the image
     pygame.image.save(image,name) 
 
-
-rewards = []
-num_ep = 100000
+num_ep = 10
 score_rew = 15
-train_every = 15
 flag_ = True
 crash = -1000
 over_flow = -1000
-epsilon = 0.4
-epsilon_decay = .9998
+epsilon = 0.
+epsilon_decay = .98
 alpha = 0.05
-# alpha_decay = 0.9998
-discount = 0.99
-show_every = 10
+alpha_decay = 0.9998
+discount = 1
+show_every = 20000
 peak_score = 0
-mb_size = 100
-D = deque([], maxlen=10000)   
+scores = []
 
 model = Sequential()
-model.add(Dense(16, input_shape=(4,80,80), activation='relu'))
+model.add(Dense(32, input_shape=(2,) + np.array((0, 0)).shape, activation='relu'))
 model.add(Flatten())       # Flatten input so as to have no problems with processing
-# model.add(Dense(128, activation='relu'))
-model.add(Dense(16, activation='relu'))
+model.add(Dense(8, activation='relu'))
 model.add(Dense(2, activation='linear'))    # Same number of outputs as possible actions
-checkpoint_path = "training_2/cp_100000_episodes.ckpt"
+checkpoint_path = "training_2/cp2.weights.h5"
 model.load_weights(checkpoint_path)
 model.compile(loss='mse', optimizer='adam', metrics=['accuracy'])
 
-scores = []
-
 for i in range(num_ep):
-    if i % show_every == 0:
-        show = True 
-    else:
-        show = False
-
     pygame.init()
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption('Flappy Bird')
 
-    BACKGROUND = pygame.image.load('assets/sprites/blank.png')
+    BACKGROUND = pygame.image.load('assets/sprites/background-day.png')
     BACKGROUND = pygame.transform.scale(BACKGROUND, (SCREEN_WIDTH, SCREEN_HEIGHT))
+    digits = [pygame.image.load(f'assets/sprites/{i}.png') for i in range(10)]
 
     bird_group = pygame.sprite.Group()
     bird = Bird()
@@ -192,50 +184,56 @@ for i in range(num_ep):
 
     clock = pygame.time.Clock()
     score = 0
+    begin = True
 
-    clock.tick(500)
-    bird.bump()
+    while begin:
 
-    screen.blit(BACKGROUND, (0, 0))
+        clock.tick(60)
 
-    if is_off_screen(ground_group.sprites()[0]): 
-        ground_group.remove(ground_group.sprites()[0])
+        bird.bump()
+        pygame.mixer.music.load(wing)
+        pygame.mixer.music.play()
+        begin = False
 
-        new_ground = Ground(GROUND_WIDTH - 20)
-        ground_group.add(new_ground)
+        screen.blit(BACKGROUND, (0, 0))
 
-    bird.begin()
-    ground_group.update()
+        if is_off_screen(ground_group.sprites()[0]):
+            ground_group.remove(ground_group.sprites()[0])
 
-    bird_group.draw(screen)
-    ground_group.draw(screen)
+            new_ground = Ground(GROUND_WIDTH - 20)
+            ground_group.add(new_ground)
 
-    pygame.display.update()
+        bird.begin()
+        ground_group.update()
 
-    image = pygame.Surface((300, 500))
-    image = pygame.transform.scale(image, (80, 80))
-    obs = pygame.surfarray.array3d(image)
-    obs = np.dot(obs[...,:3], [0.2989, 0.5870, 0.1140])
+        bird_group.draw(screen)
+        ground_group.draw(screen)
+
+        pygame.display.update()
+
+    obs = (imp(pipe_group.sprites()[1].rect[0]), imp(pipe_group.sprites()[0].rect[1] - bird.rect[1]))
     obs = np.expand_dims(obs, axis=0)
-
-    state = np.stack((obs, obs, obs, obs), axis = 1)
+    state = np.stack((obs, obs), axis = 1)
 
     total_reward = 0
-    while True:
+    for k in range(100000):
+        obs = (imp(pipe_group.sprites()[1].rect[0]), imp(pipe_group.sprites()[0].rect[1] - bird.rect[1]))
 
-        clock.tick(500)
+        clock.tick(60)
 
-        if random.random() > epsilon: 
-            action = random.randint(0, 1)
-        else:
-            Q = model.predict(state, verbose = 0)          # Q-values predictions
-            action = np.argmax(Q)   
-            # if action == 0: print(action)
+        action = np.argmax(model.predict(state, verbose = 0)   )
+            # print("Action")
 
         if(action): 
             bird.bump()
+            pygame.mixer.music.load(wing)
+            pygame.mixer.music.play()
 
         screen.blit(BACKGROUND, (0, 0))
+        x = 130
+        for num in str(score):
+            screen.blit(digits[int(num)], (x, 120))
+            x += 20
 
         if is_off_screen(ground_group.sprites()[0]):
             ground_group.remove(ground_group.sprites()[0])
@@ -262,6 +260,10 @@ for i in range(num_ep):
 
         pygame.display.update()
 
+        # Capture(screen, f"final/{k}.png", (0, 0), (300, 600))
+
+        # print(bird.speed)
+
         if (pygame.sprite.groupcollide(bird_group, ground_group, False, False, pygame.sprite.collide_mask) or
                 pygame.sprite.groupcollide(bird_group, pipe_group, False, False, pygame.sprite.collide_mask)):
             reward = crash
@@ -270,7 +272,7 @@ for i in range(num_ep):
 
         else:
             # print(pipe_group.sprites()[0].rect)
-            if(pipe_group.sprites()[0].rect[0] < bird.rect[0] and flag_):
+            if(pipe_group.sprites()[0].rect[0] < bird.rect[0] and flag_):  
                 score += 1
                 flag_ = False
                 peak_score = max(peak_score, score)
@@ -281,88 +283,17 @@ for i in range(num_ep):
             else:
                 reward = 15
         
-        # alpha = 1/(1 + q_table[obs][2])
-        image = pygame.Surface((300, 500))
-        image = pygame.transform.scale(image, (80, 80))
-        new_obs = pygame.surfarray.array3d(image)
-        new_obs = np.dot(new_obs[...,:3], [0.2989, 0.5870, 0.1140])
+        new_obs = (imp(pipe_group.sprites()[1].rect[0]), pipe_group.sprites()[0].rect[1] - disc_pos(bird.rect[1]))
         new_obs = np.expand_dims(new_obs, axis=0)
-        state_new = np.append(np.expand_dims(new_obs, axis=0), state[:, :3, :], axis=1)
-        
-        # print(state_new.shape)
-        
-        
-        # max_future_q = np.max(q_table[new_obs][:2])
-        # current_q = q_table[obs][action]
-        
-        # new_q = (1 - alpha) * current_q + alpha * (reward + discount * max_future_q)
-        # q_table[obs][action] = new_q
-
-        if reward == crash or reward == over_flow:
-            done = True
-        else:
-            done = False
-
-        D.append((state, action, reward, state_new, done))
-
-        q = model.predict(state, verbose = 0)
-        qn = model.predict(state_new, verbose = 0)
-
-        if done:
-            target = reward
-        else:
-            target = reward + discount * np.max(qn[0])
-
-        # alpha = 1/(1 + D.count((state, action, reward, state_new, done)))
-        q[0][action] = target
-        model.fit(state, q, epochs=1, verbose=0)
-    
-        state = state_new
-
-        total_reward += reward
+        state = np.append(np.expand_dims(new_obs, axis=0), state[:, :1, :], axis=1)
 
         if(reward == crash or reward == over_flow):
-            # if show:
-            #     pygame.mixer.music.load(hit)
-            #     pygame.mixer.music.play()
-            #     time.sleep(2)
+            pygame.mixer.music.load(hit)
+            pygame.mixer.music.play()
+            time.sleep(2)
             break
     
-    if show:
-        try: 
-            minibatch = random.sample(D, mb_size)
-            inputs_shape = (mb_size,) + state.shape[1:]
-            inputs = np.zeros(inputs_shape)
-            targets = np.zeros((mb_size, 2))
-
-            for j in range(0, mb_size):
-                state_D = minibatch[j][0]
-                action_D = minibatch[j][1]
-                reward_D = minibatch[j][2]
-                state_new_D = minibatch[j][3]
-                done_D = minibatch[j][4]
-            # Build Bellman equation for the Q function
-                inputs[j:j+1] = np.expand_dims(state_D, axis=0)
-                targets[j] = model.predict(state_D, verbose = 0)
-                Q_sa = model.predict(state_new_D, verbose = 0)
-                
-                if done_D:
-                    targets[j, action_D] = reward_D
-                else:
-                    targets[j, action_D] = reward_D + discount * np.max(Q_sa)
-
-            # Train network to output the Q function
-            model.train_on_batch(inputs, targets)
-
-        except: 
-            pass
-
     scores.append(score)
-    epsilon *= epsilon_decay
-    if show: 
-        print(f"{i + 1}th Episode: Reward = {total_reward}, Peak Score = {peak_score}, Score = {score}, Rolling Average = {round(np.mean(scores[-200:]), 4)}")
-        rewards.append(round(np.mean(scores[-show_every:]), 4))
-
-        model.save_weights("training_2/cp_100000_episodes.ckpt")
-
-print(rewards)
+    print(f"{i + 1}th Episode: Reward = {total_reward}, Peak Score = {peak_score}, Score = {score}, Rolling Average = {round(np.mean(scores[-200:]), 4)}")
+    
+print("Hello world")

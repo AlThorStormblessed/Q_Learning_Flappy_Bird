@@ -140,8 +140,8 @@ train_every = 15
 flag_ = True
 crash = -1000
 over_flow = -1000
-epsilon = .01
-epsilon_decay = .0001
+epsilon = .0
+epsilon_decay = .0
 alpha = 0.05
 # alpha_decay = 0.9998
 discount = 1
@@ -198,10 +198,6 @@ for i in tqdm(range(num_ep)):
 
     clock.tick(1000000)
     bird.bump()
-    # if show:
-    #     pygame.mixer.music.load(wing)
-        # pygame.mixer.music.play()
-
 
     if is_off_screen(ground_group.sprites()[0]): 
         ground_group.remove(ground_group.sprites()[0])
@@ -211,12 +207,6 @@ for i in tqdm(range(num_ep)):
 
     bird.begin()
     ground_group.update()
-
-        # if show:
-        #     bird_group.draw(screen)
-        #     ground_group.draw(screen)
-
-        #     pygame.display.update()
 
     obs = (imp(pipe_group.sprites()[1].rect[0]), imp(pipe_group.sprites()[0].rect[1] - bird.rect[1]))
     obs = np.expand_dims(obs, axis=0)
@@ -234,16 +224,6 @@ for i in tqdm(range(num_ep)):
 
         if(action): 
             bird.bump()
-            # if show:
-            #     pygame.mixer.music.load(wing)
-            #     pygame.mixer.music.play()
-
-        # if show:
-        #     screen.blit(BACKGROUND, (0, 0))
-        #     x = 130
-        #     for num in str(score):
-        #         screen.blit(digits[int(num)], (x, 120))
-        #         x += 20
 
         if is_off_screen(ground_group.sprites()[0]):
             ground_group.remove(ground_group.sprites()[0])
@@ -264,18 +244,6 @@ for i in tqdm(range(num_ep)):
         ground_group.update()
         pipe_group.update()
 
-        # if show:
-        #     bird_group.draw(screen)
-        #     pipe_group.draw(screen)
-        #     ground_group.draw(screen)
-
-        #     pygame.display.update()
-
-        # if show:
-        #     Capture(screen, f"num_episodes_{i}/{k}.png", (0, 0), (300, 600))
-
-        # print(bird.speed)
-
         if (pygame.sprite.groupcollide(bird_group, ground_group, False, False, pygame.sprite.collide_mask) or
                 pygame.sprite.groupcollide(bird_group, pipe_group, False, False, pygame.sprite.collide_mask)):
             reward = crash
@@ -283,7 +251,6 @@ for i in tqdm(range(num_ep)):
             reward = over_flow
 
         else:
-            # print(pipe_group.sprites()[0].rect)
             if(pipe_group.sprites()[0].rect[0] < bird.rect[0] and flag_):
                 score += 1
                 flag_ = False
@@ -294,16 +261,10 @@ for i in tqdm(range(num_ep)):
                 reward = 15
             else:
                 reward = 15
-        
-        # alpha = 1/(1 + q_table[obs][2])
+     
         new_obs = (imp(pipe_group.sprites()[1].rect[0]), pipe_group.sprites()[0].rect[1] - disc_pos(bird.rect[1]))
         new_obs = np.expand_dims(new_obs, axis=0)
         state_new = np.append(np.expand_dims(new_obs, axis=0), state[:, :1, :], axis=1)
-        # max_future_q = np.max(q_table[new_obs][:2])
-        # current_q = q_table[obs][action]
-        
-        # new_q = (1 - alpha) * current_q + alpha * (reward + discount * max_future_q)
-        # q_table[obs][action] = new_q
 
         if reward == crash or reward == over_flow:
             done = True
@@ -328,15 +289,11 @@ for i in tqdm(range(num_ep)):
         total_reward += reward
 
         if(reward == crash or reward == over_flow):
-            # if show:
-            #     pygame.mixer.music.load(hit)
-            #     pygame.mixer.music.play()
-            #     time.sleep(2)
             break
     
-    epsilon = epsilon - epsilon_decay
-    if epsilon < 0.01:
-        epsilon = 0.01
+    # epsilon = epsilon - epsilon_decay
+    # if epsilon < 0.01:
+    #     epsilon = 0.01
     if show and len(D) > mb_size: 
         minibatch = random.sample(D, mb_size)
         inputs_shape = (mb_size,) + state.shape[1:]
@@ -374,13 +331,6 @@ for i in tqdm(range(num_ep)):
         if best < round(np.mean(scores[-show_every:]), 4) and i:
             model.save_weights("training_2/cp2.weights.h5")
             best = round(np.mean(scores[-show_every:]), 4)
-
-        # D = deque()
-
-
-print(rewards)
-with open(f"qtable-{int(time.time())}.pickle", "wb") as f:
-    pickle.dump(q_table, f)
 
 plt.scatter(np.arange(0, len(rewards)), rewards, s = 0.1)
 plt.grid()
