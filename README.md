@@ -6,45 +6,23 @@ Following is the code for the implementation of the following paper in which a s
 
 The implementation follows two variations of the game, one with constant speed while falling and the other with constant gravity.
 
+Following that, the same was implemented using Deep Q-Network for higher accuracy and better results, using a 3 layer Dense network.
+
 ## Code
 
 The flappy.py and flappy_gravity.py files are used to train the Q-learning algorithm over a set number of episodes, while test.py is used to load a saved Q_table to view the results in the form of the game.
 
+flappy_nn.py is similarly used to trained the DQN, while test_nn.py is used to load a model and its weights to view the results.
+
 ## Results
 
-Only two states were used to train the model, that is the distance between the bird and the next pipe along the X and the Y axes. The model was trained over 40000 episodes and achieved a peak score of 480 with an average of 64 over the last 2000 episodes.
+Only two states were used to train the model, that is the distance between the bird and the next pipe along the X and the Y axes. The Q-learning model was trained over 40000 episodes and achieved a peak score of 480 with an average of 64 over the last 2000 episodes. The DQN was trained over roughly 20000 episodes (so far) and achieved a peak score of 800 and an average of over 250.
 
 10000 episodes: 
 
 
 
 https://github.com/AlThorStormblessed/Q_Learning_Flappy_Bird/assets/86941904/43487691-c516-456f-a797-f454ffce9b13
-
-
-
-
-20000 episodes:
-
-
-
-
-
-https://github.com/AlThorStormblessed/Q_Learning_Flappy_Bird/assets/86941904/cfb51759-3c61-4cdb-acfa-fa4a61ba12c0
-
-
-
-
-
-
-
-30000 episodes:
-
-
-
-
-
-https://github.com/AlThorStormblessed/Q_Learning_Flappy_Bird/assets/86941904/cfe303fc-595f-483e-8879-3695bee7a28a
-
 
 
 
