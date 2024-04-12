@@ -140,7 +140,7 @@ train_every = 15
 flag_ = True
 crash = -1000
 over_flow = -1000
-epsilon = .0
+epsilon = .01
 epsilon_decay = .0
 alpha = 0.05
 # alpha_decay = 0.9998
@@ -294,6 +294,9 @@ for i in tqdm(range(num_ep)):
     # epsilon = epsilon - epsilon_decay
     # if epsilon < 0.01:
     #     epsilon = 0.01
+
+    if i > 1000:
+        epsilon = 0
     if show and len(D) > mb_size: 
         minibatch = random.sample(D, mb_size)
         inputs_shape = (mb_size,) + state.shape[1:]
@@ -329,7 +332,7 @@ for i in tqdm(range(num_ep)):
         rewards.append(round(np.mean(scores[-show_every:]), 4))
         if (i - 1) % 1000 == 0: D = deque()
         if best < round(np.mean(scores[-show_every:]), 4) and i:
-            model.save_weights("training_2/cp2.weights.h5")
+            model.save_weights("training_2/cp.weights.h5")
             best = round(np.mean(scores[-show_every:]), 4)
 
 plt.scatter(np.arange(0, len(rewards)), rewards, s = 0.1)

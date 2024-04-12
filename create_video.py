@@ -8,7 +8,7 @@ print(os.getcwd())
 
 # Folder which contains all the images 
 # from which video is to be generated 
-path = f"num_episodes_30000/"
+path = f"3/"
 
 mean_height = 0
 mean_width = 0

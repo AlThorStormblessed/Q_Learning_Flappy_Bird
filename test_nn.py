@@ -8,6 +8,7 @@ from keras.layers import (
     Dense,
     Flatten
 )
+import os
 
 style.use("ggplot")
 
@@ -134,7 +135,7 @@ def Capture(display,name,pos,size): # (pygame Surface, String, tuple, tuple)
     image.blit(display,(0,0),(pos,size))  # Blit portion of the display to the image
     pygame.image.save(image,name) 
 
-num_ep = 10
+num_ep = 1000
 score_rew = 15
 flag_ = True
 crash = -1000
@@ -158,6 +159,7 @@ model.load_weights(checkpoint_path)
 model.compile(loss='mse', optimizer='adam', metrics=['accuracy'])
 
 for i in range(num_ep):
+    os.mkdir(f"{i + 1}")
     pygame.init()
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption('Flappy Bird')
@@ -188,7 +190,7 @@ for i in range(num_ep):
 
     while begin:
 
-        clock.tick(60)
+        clock.tick(240)
 
         bird.bump()
         pygame.mixer.music.load(wing)
@@ -219,7 +221,7 @@ for i in range(num_ep):
     for k in range(100000):
         obs = (imp(pipe_group.sprites()[1].rect[0]), imp(pipe_group.sprites()[0].rect[1] - bird.rect[1]))
 
-        clock.tick(60)
+        clock.tick(240)
 
         action = np.argmax(model.predict(state, verbose = 0)   )
             # print("Action")
@@ -260,7 +262,7 @@ for i in range(num_ep):
 
         pygame.display.update()
 
-        # Capture(screen, f"final/{k}.png", (0, 0), (300, 600))
+        Capture(screen, f"{i + 1}/{k}.png", (0, 0), (300, 600))
 
         # print(bird.speed)
 
